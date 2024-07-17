@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Interweber\GraphQL\Mapper;
 
-use Cake\I18n\FrozenDate;
-use Cake\I18n\FrozenTime;
+use Cake\I18n\Date;
+use Cake\I18n\DateTime;
 use GraphQL\Type\Definition\InputType;
 use GraphQL\Type\Definition\NamedType;
 use GraphQL\Type\Definition\OutputType;
@@ -16,9 +16,9 @@ use ReflectionMethod;
 use ReflectionProperty;
 use TheCodingMachine\GraphQLite\Mappers\Root\RootTypeMapperInterface;
 
-class FrozenDateTypeMapper implements RootTypeMapperInterface {
-	private static FrozenTimeType|null $dateTimeType = null;
-	private static FrozenDateType|null $dateType = null;
+class DateTypeMapper implements RootTypeMapperInterface {
+	private static DateTimeType|null $dateTimeType = null;
+	private static DateType|null $dateType = null;
 
 	/**
 	 * @param RootTypeMapperInterface $next
@@ -59,45 +59,49 @@ class FrozenDateTypeMapper implements RootTypeMapperInterface {
 		return $this->next->toGraphQLInputType($type, $subType, $argumentName, $reflector, $docBlockObj);
 	}
 
-	private function mapBaseType(Type $type): FrozenTimeType|FrozenDateType|null {
+	private function mapBaseType(Type $type): DateTimeType|DateType|null {
 		if (!$type instanceof Object_) {
 			return null;
 		}
 
 		$fqcn = (string) $type->getFqsen();
-		if ($fqcn === '\\' . FrozenTime::class) {
+		if ($fqcn === '\\' . DateTime::class) {
 			return self::getDateTimeType();
 		}
 
-		if ($fqcn === '\\' . FrozenDate::class) {
+		if ($fqcn === '\\' . Date::class) {
 			return self::getDateType();
 		}
 
 		 return null;
 	}
 
-	private static function getDateType(): FrozenDateType {
+	private static function getDateType(): DateType {
 		if (self::$dateType === null) {
-			self::$dateType = new FrozenDateType();
+			self::$dateType = new DateType();
 		}
 
 		return self::$dateType;
 	}
 
-	private static function getDateTimeType(): FrozenTimeType {
+	private static function getDateTimeType(): DateTimeType {
 		if (self::$dateTimeType === null) {
-			self::$dateTimeType = new FrozenTimeType();
+			self::$dateTimeType = new DateTimeType();
 		}
 
 		return self::$dateTimeType;
 	}
 
 	public function mapNameToType(string $typeName): NamedType&GraphQLType {
-		if ($typeName === 'FrozenTime') {
+		if ($typeName === 'DateTime') {
 			return self::getDateTimeType();
 		}
 
-		if ($typeName === 'FrozenDate') {
+		if ($typeName === 'CustomDateTime') {
+			return self::getDateTimeType();
+		}
+
+		if ($typeName === 'Date') {
 			return self::getDateType();
 		}
 

@@ -1,0 +1,49 @@
+<?php
+declare(strict_types=1);
+
+namespace {{ namespace }}\GraphQL\Sorter;
+
+use App\GraphQL\Helper\SortField;
+use Cake\Database\Expression\OrderClauseExpression;
+use Interweber\GraphQL\Sorter\Sorter;
+use TheCodingMachine\GraphQLite\Annotations\Factory;
+use TheCodingMachine\GraphQLite\Annotations\UseInputType;
+
+class {{ pluralName }}Sorter extends Sorter {
+	/**
+	 * @param {{ pluralName }}SorterFields $field
+	 * @param DirectionEnum $direction
+	 * @return SortField<{{ pluralName }}SorterFields>
+	 */
+	#[Factory(name: '{{ pluralName }}SortFieldInput', default: false)]
+	public function fieldFactory(
+		{{ pluralName }}SorterFields $field,
+		DirectionEnum $direction
+	): SortField {
+		return new SortField($field, $direction);
+	}
+
+	/**
+	 * @param array<SortField<{{ pluralName }}SorterFields>> $fields
+	 * @return static
+	 */
+	#[Factory]
+	public static function factory(
+		#[UseInputType('{{ pluralName }}SortFieldInput!')]
+		array $fields
+	): self {
+		$order = [];
+
+		foreach ($fields as $field) {
+			switch ($field->field) {
+{% for field in fields %}
+				case {{ pluralName }}SorterFields::{{ field|upper }}:
+					$order[] = new OrderClauseExpression('{{ field }}', $field->direction->value);
+					break;
+{% endfor %}
+			}
+		}
+
+		return new self($order);
+	}
+}

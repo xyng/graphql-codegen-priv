@@ -25,7 +25,6 @@ class DateMatcher extends BaseMatcher {
 	}
 
 	/**
-	 * @Factory()
 	 * @param DateTimeImmutable|null $eq Match if Entry equals DateTime
 	 * @param DateTimeImmutable|null $neq Match if Entry does not equal DateTime
 	 * @param DateTimeImmutable[]|null $in Match if Entry is in list
@@ -37,6 +36,7 @@ class DateMatcher extends BaseMatcher {
 	 * @param bool|null $null Match if Entry is null
 	 * @return DateMatcher
 	 */
+	#[Factory]
 	public static function factory(
 		?DateTimeImmutable $eq,
 		?DateTimeImmutable $neq,

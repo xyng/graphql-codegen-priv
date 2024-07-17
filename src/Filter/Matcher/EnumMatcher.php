@@ -9,21 +9,24 @@ use Cake\ORM\Query;
 use TheCodingMachine\GraphQLite\Annotations\Factory;
 use TheCodingMachine\GraphQLite\Types\ID;
 
-class IdMatcher extends BaseMatcher {
+/**
+ * @template T of \BackedEnum
+ */
+class EnumMatcher extends BaseMatcher {
 	/**
-	 * @param ID|null $eq
-	 * @param ID|null $neq
-	 * @param ID[]|null $in
-	 * @param ID[]|null $nin
-	 * @return IdMatcher
+	 * @param T|null $eq
+	 * @param T|null $neq
+	 * @param T[]|null $in
+	 * @param T[]|null $nin
+	 * @return EnumMatcher
 	 */
 	#[Factory]
 	public static function factory(
-		?ID $eq,
-		?ID $neq,
+		?\BackedEnum $eq,
+		?\BackedEnum $neq,
 		?array $in,
 		?array $nin,
-	): IdMatcher {
+	): EnumMatcher {
 		return new self($eq, $neq, $in, $nin, null);
 	}
 

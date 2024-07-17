@@ -24,7 +24,6 @@ class IntMatcher extends BaseMatcher {
 	}
 
 	/**
-	 * @Factory()
 	 * @param int|null $eq Match if Entry equals int
 	 * @param int|null $neq Match if Entry does not equal int
 	 * @param int[]|null $in Match if Entry is in list
@@ -36,6 +35,7 @@ class IntMatcher extends BaseMatcher {
 	 * @param bool|null $null
 	 * @return IntMatcher
 	 */
+	#[Factory]
 	public static function factory(
 		?int $eq,
 		?int $neq,

@@ -6,9 +6,9 @@ namespace Interweber\GraphQL\Classes;
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
-use Interweber\GraphQL\Mapper\FrozenDateTypeMapperFactory;
+use Interweber\GraphQL\Mapper\DateTypeMapperFactory;
 use Interweber\GraphQL\Mapper\SubscriptionTypeMapperFactory;
-use Mouf\Composer\ClassNameMapper;
+use Kcs\ClassFinder\Finder\ComposerFinder;
 use TheCodingMachine\GraphQLite\SchemaFactory;
 
 class SchemaGenerator {
@@ -17,6 +17,7 @@ class SchemaGenerator {
 
 		$builder = new \DI\ContainerBuilder();
 		if (!Configure::read('debug')) {
+			$builder->enableCompilation(TMP . 'di-cache');
 			$builder->enableDefinitionCache();
 		}
 
@@ -25,16 +26,17 @@ class SchemaGenerator {
 		$pluginPath = Plugin::classPath('Interweber/GraphQL');
 		$path = str_replace(ROOT . DS, '', $pluginPath);
 
-		$classNameMapper = ClassNameMapper::createFromComposerFile(null, null, false);
-		$classNameMapper->registerPsr4Namespace('Interweber\\GraphQL', $path);
+		$classNameMapper = new ComposerFinder();
+		$classNameMapper
+			->notInNamespace('App\\Test\\');
 
 		$factory = new SchemaFactory($cache, $container);
-		$factory->setClassNameMapper($classNameMapper);
+		$factory->setFinder($classNameMapper);
 		$factory
 			->addControllerNamespace(Configure::read('App.namespace') . '\\GraphQL\\Controller')
 			->addTypeNamespace(Configure::read('App.namespace'))
 			->addTypeNamespace('Interweber\\GraphQL')
-			->addRootTypeMapperFactory(new FrozenDateTypeMapperFactory())
+			->addRootTypeMapperFactory(new DateTypeMapperFactory())
 			->addRootTypeMapperFactory(new SubscriptionTypeMapperFactory());
 
 		if (!Configure::read('debug')) {

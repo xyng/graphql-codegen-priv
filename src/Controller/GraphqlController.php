@@ -10,6 +10,7 @@ use Cake\Core\Configure;
 use Cake\Datasource\Exception\RecordNotFoundException;
 use Cake\Event\Event;
 use Cake\ORM\Exception\PersistenceFailedException;
+use Cake\View\JsonView;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Error\Error;
 use Interweber\GraphQL\Classes\SchemaGenerator;
@@ -34,15 +35,18 @@ class GraphqlController extends Controller {
 
 	protected Schema $schema;
 
+	public function viewClasses(): array
+    {
+        return [JsonView::class];
+    }
+
 	public function initialize(): void {
 		parent::initialize();
 
 		$this->loadComponent('Authentication.Authentication');
 		$this->loadComponent('Authorization.Authorization');
-		$this->loadComponent('RequestHandler');
 
-		$this->RequestHandler->renderAs($this, 'json');
-		$this->RequestHandler->respondAs('json');
+		$this->Authentication->allowUnauthenticated(['handle']);
 
 		/**
 		 * @param Error[] $errors
@@ -133,6 +137,8 @@ class GraphqlController extends Controller {
 		if (!$request->contentType()) {
 			$request = $request->withHeader('Content-Type', 'application/json');
 		}
+
+		$request->getBody()->rewind();
 
 		$handler = new StaticRequestHandler($this->getResponse());
 		$graphqlResponse = $this->graphqlMiddleware->process($request, $handler);

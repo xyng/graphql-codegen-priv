@@ -1,0 +1,36 @@
+<?php
+declare(strict_types=1);
+
+namespace {{ namespace }}\GraphQL\Filter;
+
+use Interweber\GraphQL\Filter\Filter;
+use TheCodingMachine\GraphQLite\Annotations\Factory;
+{% if fields has some f => f.type == 'Enum' %}
+use TheCodingMachine\GraphQLite\Annotations\UseInputType;
+{% endif %}
+
+class {{ pluralName }}Filter extends Filter {
+	#[Factory]
+	public static function factory(
+{% for field in fields %}
+{% if field.type == 'relation' or field.type == 'primary' %}
+		?\Interweber\GraphQL\Filter\Matcher\IdMatcher ${{ field.name }},
+{% elseif field.type == 'Enum' %}
+		#[UseInputType('EnumMatcher_{{ field.enum }}')]
+		?\Interweber\GraphQL\Filter\Matcher\{{ field.type }}Matcher ${{ field.name }},
+{% else %}
+		?\Interweber\GraphQL\Filter\Matcher\{{ field.type }}Matcher ${{ field.name }},
+{% endif %}
+{%- endfor %}
+	): {{ pluralName }}Filter {
+		return new self([
+{% for field in fields %}
+{% if field.type == 'relation' %}
+			'{{ field.name }}' => ${{ field.name }}?->buildRelation('{{ field.relation_name }}', 'uuid'),
+{% else %}
+			'{{ field.name }}' => ${{ field.name }},
+{% endif %}
+{% endfor %}
+		]);
+	}
+}

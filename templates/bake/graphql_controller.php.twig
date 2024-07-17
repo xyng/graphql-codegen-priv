@@ -1,0 +1,123 @@
+<?php
+declare(strict_types=1);
+
+namespace {{ namespace }}\GraphQL\Controller;
+
+use App\GraphQL\Exception\ForbiddenException;
+use {{ namespace }}\GraphQL\Filter\{{ pluralHumanName }}Filter;
+use {{ namespace }}\GraphQL\Sorter\{{ pluralHumanName }}Sorter;
+use {{ namespace }}\Model\Entity\User;
+{%- if entityName != 'User' -%}
+use {{ namespace }}\Model\Entity\{{ entityName }};
+{%- endif -%}
+use {{ namespace }}\Model\Table\{{ tableName }};
+use GraphQL\Type\Definition\ResolveInfo;
+use Interweber\GraphQL\Classes\BaseController;
+use Interweber\GraphQL\Classes\CakeORMPaginationResult;
+use Interweber\GraphQL\Classes\QueryOptimizer;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
+use TheCodingMachine\GraphQLite\Annotations\Mutation;
+use TheCodingMachine\GraphQLite\Annotations\Query;
+use TheCodingMachine\GraphQLite\Annotations\UseInputType;
+use TheCodingMachine\GraphQLite\Types\ID;
+
+/**
+ * @template-extends BaseController<{{ tableName }}, {{ entityName }}>
+ */
+class {{ name }}Controller extends BaseController {
+	public string $modelName = {{ tableName }}::class;
+
+	/**
+	 * @param User ${{ identityVariable }}
+	 * @param ResolveInfo $resolveInfo
+	 * @param {{ pluralHumanName }}Filter|null $filter
+	 * @param {{ pluralHumanName }}Sorter|null $sorter
+	 * @return CakeORMPaginationResult|{{ entityName }}[]
+	 * @psalm-return CakeORMPaginationResult<{{ entityName }}>
+	 */
+	#[Query]
+	public function get{{ pluralHumanName }}(
+		#[InjectUser] User ${{ identityVariable }},
+		ResolveInfo $resolveInfo,
+		?{{ pluralHumanName }}Filter $filter,
+		?{{ pluralHumanName }}Sorter $sorter
+	): CakeORMPaginationResult {
+		$query = $this->model->find();
+
+		if ($filter) {
+			$query = $filter->apply($query);
+		}
+
+		if ($sorter) {
+			$query = $sorter->apply($query);
+		}
+
+		$query = QueryOptimizer::optimizeQuery($query, $resolveInfo, ${{ identityVariable }}, 'list', true);
+
+		/** @var \Cake\ORM\Query $query */
+		$query = ${{ identityVariable }}->applyScope('list', $query);
+
+		return new CakeORMPaginationResult($query);
+	}
+
+	#[Query]
+	public function get{{ singularHumanName }}(
+		#[InjectUser]
+		User ${{ identityVariable }},
+		ID $id
+	): {{ entityName }} {
+		/** @var {{ entityName }} $entity */
+		$entity = $this->model->getAuthenticatedByField('uuid', $id, ${{ identityVariable }}, 'show');
+
+		return $entity;
+	}
+
+	#[Mutation]
+	public function create{{ singularHumanName }}(
+		#[InjectUser]
+		User ${{ identityVariable }},
+		#[UseInputType('Create{{ singularHumanName }}Input!')]
+		{{ entityName }} ${{ singularVariable }}
+	): {{ entityName }} {
+		if (!${{ identityVariable }}->can('create', ${{ singularVariable }})) {
+			throw new ForbiddenException();
+		}
+
+		$this->model->saveOrFail(${{ singularVariable }});
+
+		return ${{ singularVariable }};
+	}
+
+	#[Mutation]
+	public function update{{ singularHumanName }}(
+		#[InjectUser]
+		User ${{ identityVariable }},
+		#[UseInputType('Update{{ singularHumanName }}Input!')]
+		{{ entityName }} ${{ singularVariable }}
+	): {{ entityName }} {
+		if (!${{ identityVariable }}->can('update', ${{ singularVariable }})) {
+			throw new ForbiddenException();
+		}
+
+		$this->model->saveOrFail(${{ singularVariable }});
+
+		return ${{ singularVariable }};
+	}
+
+	/**
+	 * @throws ForbiddenException
+	 */
+	#[Mutation]
+	public function delete{{ singularHumanName }}(
+		#[InjectUser]
+		User ${{ identityVariable }},
+		ID $id
+	): bool {
+		${{ singularVariable }} = $this->model->getAuthenticatedByField('uuid', $id, ${{ identityVariable }}, 'delete');
+		if (!${{ identityVariable }}->can('delete', ${{ singularVariable }})) {
+			throw new ForbiddenException();
+		}
+
+		return $this->model->deleteOrFail(${{ singularVariable }});
+	}
+}

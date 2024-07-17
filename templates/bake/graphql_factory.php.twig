@@ -1,0 +1,80 @@
+<?php
+declare(strict_types=1);
+
+namespace {{ namespace }}\GraphQL\Factory;
+
+use {{ namespace }}\Model\Entity\User;
+{%- if entityName != 'User' -%}
+use {{ namespace }}\Model\Entity\{{ entityName }};
+{%- endif -%}
+use {{ namespace }}\Model\Table\{{ tableName }};
+use Interweber\GraphQL\Factory\BaseFactory;
+use TheCodingMachine\GraphQLite\Annotations\Factory;
+use TheCodingMachine\GraphQLite\Annotations\InjectUser;
+use TheCodingMachine\GraphQLite\Types\ID;
+
+/**
+ * {{ modelName }} Factory
+ *
+ * @property {{ tableName }} $model
+ */
+class {{ entityName }}Factory extends BaseFactory {
+	public ?string $defaultTable = {{ tableName }}::class;
+
+	#[Factory(name: "Create{{ entityName }}Input", default: true)]
+	public function create(
+		#[InjectUser]
+		User $identity,
+{% for var, property in properties %}
+		{%- if property.type == 'ID' -%}
+			{%- set type = 'ID' -%}
+		{%- else -%}
+			{%- set type = DocBlock.columnTypeToHintType(property.type) -%}
+		{%- endif -%}
+		{%- if property.null -%}
+			{%- set type = '?' ~ type -%}
+		{%- endif %}
+		{{ type }} ${{ var }},
+{% endfor %}
+	): {{ entityName }} {
+		return $this->model->newEntity([
+{% for var, property in properties %}
+{% if property.assoc %}
+			'{{ var }}' => $this->model->{{ property.assoc }}->getAuthenticatedByField('uuid', (string) ${{ var }}, $identity, 'show'),
+{% else %}
+			'{{ var }}' => ${{ var }},
+{% endif -%}
+{% endfor %}
+		]);
+	}
+
+	#[Factory(name: "Update{{ entityName }}Input", default: false)]
+	public function update(
+		#[InjectUser]
+		User $identity,
+		ID $id,
+{% for var, property in properties %}
+		{%- if property.type == 'ID' -%}
+			{%- set type = 'ID' -%}
+		{%- else -%}
+			{%- set type = DocBlock.columnTypeToHintType(property.type) -%}
+		{%- endif -%}
+		{%- if property.null -%}
+			{%- set type = '?' ~ type -%}
+		{%- endif %}
+		{{ type }} ${{ var }},
+{% endfor %}
+	): {{ entityName }} {
+		$model = $this->model->getAuthenticatedByField('uuid', (string) $id, $identity, 'show');
+
+		return $this->model->patchEntity($model, [
+{% for var, property in properties %}
+{% if property.assoc %}
+			'{{ var }}' => $this->model->{{ property.assoc }}->getAuthenticatedByField('uuid', (string) ${{ var }}, $identity, 'show'),
+{% else %}
+			'{{ var }}' => ${{ var }},
+{% endif -%}
+{% endfor %}
+		]);
+	}
+}

@@ -24,7 +24,6 @@ class FloatMatcher extends BaseMatcher {
 	}
 
 	/**
-	 * @Factory()
 	 * @param float|null $eq Match if Entry equals float
 	 * @param float|null $neq Match if Entry does not equal float
 	 * @param float[]|null $in Match if Entry is in list
@@ -36,6 +35,7 @@ class FloatMatcher extends BaseMatcher {
 	 * @param bool|null $null
 	 * @return FloatMatcher
 	 */
+	#[Factory]
 	public static function factory(
 		?float $eq,
 		?float $neq,

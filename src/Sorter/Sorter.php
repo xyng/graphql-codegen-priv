@@ -10,7 +10,7 @@ class Sorter {
 	/**
 	 * @param array<OrderClauseExpression|\Closure> $orderExpressions
 	 */
-	public function __construct(protected array $orderExpressions) {
+	public function __construct(protected array $orderExpressions = []) {
 	}
 
 	public function apply(Query $q): Query {

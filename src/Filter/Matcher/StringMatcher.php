@@ -23,7 +23,6 @@ class StringMatcher extends BaseMatcher {
 	}
 
 	/**
-	 * @Factory()
 	 * @param string|null $eq Match if Entry equals string
 	 * @param string|null $neq Match if Entry does not equal string
 	 * @param string[]|null $in Match if Entry is in list
@@ -34,6 +33,7 @@ class StringMatcher extends BaseMatcher {
 	 * @param bool|null $null
 	 * @return StringMatcher
 	 */
+	#[Factory]
 	public static function factory(
 		?string $eq,
 		?string $neq,
